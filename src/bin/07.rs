@@ -1,4 +1,4 @@
-use std::collections::{HashSet, VecDeque};
+use std::collections::HashSet;
 
 use itertools::Itertools;
 
@@ -37,7 +37,7 @@ pub fn part_one(input: &str) -> Option<i64> {
     Some(result)
 }
 
-fn solve_equation(equation: &Equation) -> Option<HashSet<VecDeque<char>>> {
+fn solve_equation(equation: &Equation) -> Option<HashSet<Vec<char>>> {
     let mut solutions = HashSet::new();
     if equation.numbers.len() == 2 {
         if equation.numbers[0] + equation.numbers[1] == equation.target {
@@ -68,7 +68,7 @@ fn solve_equation(equation: &Equation) -> Option<HashSet<VecDeque<char>>> {
         if let Some(sols) = add_smaller_solutions {
             for sol in sols {
                 let mut new_sol = sol.clone();
-                new_sol.push_back('+');
+                new_sol.push('+');
                 solutions.insert(new_sol);
             }
         }
@@ -84,7 +84,7 @@ fn solve_equation(equation: &Equation) -> Option<HashSet<VecDeque<char>>> {
         if let Some(sols) = mult_smaller_solutions {
             for sol in sols {
                 let mut new_sol = sol.clone();
-                new_sol.push_back('*');
+                new_sol.push('*');
                 solutions.insert(new_sol);
             }
         };
