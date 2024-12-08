@@ -1,5 +1,7 @@
 use std::collections::HashSet;
 
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+
 advent_of_code::solution!(6);
 
 #[derive(Debug, Eq, Hash, PartialEq, Clone, Copy)]
@@ -196,12 +198,15 @@ pub fn part_two(input: &str) -> Option<u32> {
         };
     }
 
-    let mut res = 0;
-    for block in potential_blocker_positions {
-        if check_for_loop(&rocks, x_max, y_max, block, start_guard) {
-            res += 1
-        };
-    }
+    let res = potential_blocker_positions
+        .par_iter()
+        .fold_with(0, |acc, block| {
+            if check_for_loop(&rocks, x_max, y_max, block, start_guard) {
+                return acc + 1;
+            };
+            acc
+        })
+        .sum();
 
     Some(res)
 }
@@ -236,12 +241,12 @@ fn check_for_loop(
     rocks: &HashSet<Pos>,
     x_max: i32,
     y_max: i32,
-    new_block: Pos,
+    new_block: &Pos,
     start_guard: Guard,
 ) -> bool {
     let mut guard = start_guard;
     let mut new_rocks = rocks.clone();
-    new_rocks.insert(new_block);
+    new_rocks.insert(new_block.to_owned());
 
     let mut visited = HashSet::new();
     loop {

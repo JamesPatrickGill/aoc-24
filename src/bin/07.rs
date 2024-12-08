@@ -2,6 +2,8 @@ use std::collections::HashSet;
 
 use itertools::Itertools;
 
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+
 advent_of_code::solution!(7);
 
 #[derive(Debug, Eq, Hash, PartialEq, Clone)]
@@ -26,13 +28,16 @@ pub fn part_one(input: &str) -> Option<i64> {
         })
         .collect_vec();
 
-    let result: i64 = equations.into_iter().fold(0, |acc, eq| {
-        if solve_equation(&eq).is_some() {
-            acc + eq.target
-        } else {
-            acc
-        }
-    });
+    let result: i64 = equations
+        .par_iter()
+        .fold_with(0, |acc, eq| {
+            if solve_equation(eq).is_some() {
+                acc + eq.target
+            } else {
+                acc
+            }
+        })
+        .sum();
 
     Some(result)
 }
@@ -41,11 +46,11 @@ fn solve_equation(equation: &Equation) -> Option<HashSet<Vec<char>>> {
     let mut solutions = HashSet::new();
     if equation.numbers.len() == 2 {
         if equation.numbers[0] + equation.numbers[1] == equation.target {
-            solutions.insert(vec!['+'].into());
+            solutions.insert(vec!['+']);
         };
 
         if equation.numbers[0] * equation.numbers[1] == equation.target {
-            solutions.insert(vec!['*'].into());
+            solutions.insert(vec!['*']);
         };
 
         return if solutions.is_empty() {
@@ -113,33 +118,36 @@ pub fn part_two(input: &str) -> Option<i64> {
         })
         .collect_vec();
 
-    let result: i64 = equations.into_iter().fold(0, |acc, eq| {
-        if solve_equation_2(&eq).is_some() {
-            acc + eq.target
-        } else {
-            acc
-        }
-    });
+    let result: i64 = equations
+        .par_iter()
+        .fold_with(0, |acc, eq| {
+            if solve_equation_2(eq).is_some() {
+                acc + eq.target
+            } else {
+                acc
+            }
+        })
+        .sum();
 
     Some(result)
 }
 
-fn solve_equation_2(equation: &Equation) -> Option<HashSet<VecDeque<char>>> {
+fn solve_equation_2(equation: &Equation) -> Option<HashSet<Vec<char>>> {
     let mut solutions = HashSet::new();
     if equation.numbers.len() == 2 {
         if equation.numbers[0] + equation.numbers[1] == equation.target {
-            solutions.insert(vec!['+'].into());
+            solutions.insert(vec!['+']);
         };
 
         if equation.numbers[0] * equation.numbers[1] == equation.target {
-            solutions.insert(vec!['*'].into());
+            solutions.insert(vec!['*']);
         };
 
         let concat = format!("{}{}", equation.numbers[0], equation.numbers[1])
             .parse::<i64>()
             .unwrap();
         if concat == equation.target {
-            solutions.insert(vec!['|'].into());
+            solutions.insert(vec!['|']);
         };
 
         return if solutions.is_empty() {
@@ -162,7 +170,7 @@ fn solve_equation_2(equation: &Equation) -> Option<HashSet<VecDeque<char>>> {
         if let Some(sols) = add_smaller_solutions {
             for sol in sols {
                 let mut new_sol = sol.clone();
-                new_sol.push_back('+');
+                new_sol.push('+');
                 solutions.insert(new_sol);
             }
         }
@@ -178,7 +186,7 @@ fn solve_equation_2(equation: &Equation) -> Option<HashSet<VecDeque<char>>> {
         if let Some(sols) = mult_smaller_solutions {
             for sol in sols {
                 let mut new_sol = sol.clone();
-                new_sol.push_back('*');
+                new_sol.push('*');
                 solutions.insert(new_sol);
             }
         };
@@ -196,7 +204,7 @@ fn solve_equation_2(equation: &Equation) -> Option<HashSet<VecDeque<char>>> {
             if let Some(sols) = concat_smaller_solutions {
                 for sol in sols {
                     let mut new_sol = sol.clone();
-                    new_sol.push_back('|');
+                    new_sol.push('|');
                     solutions.insert(new_sol);
                 }
             };
